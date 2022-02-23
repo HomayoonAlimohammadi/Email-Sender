@@ -1,0 +1,16 @@
+{
+    "my_firstname" : "Homayoon",
+    "mail_content" : "content",
+    "sender_address" : "homayoonalimohammadi@gmail.com",
+    "sender_pass" : "ojsqobjfhfmrtrfd",
+    "subject" : "Request for MS Supervision",
+    "my_university_name" : "Sharif University of Technology",
+    "my_field" : "Materials Science and Engineering",
+    "my_country" : "Iran",
+    "paper_title" : "Advancement of Materials Science with Machine Learning",
+    "nth_author" : "first author",
+    "gpa" : "3.5",
+    "toefl_score" : "120",
+    "gre_score" : "300",
+    "my_goal" : "Machine Learning Specialist in Materials Science"
+}
