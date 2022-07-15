@@ -2,90 +2,109 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 import json
+from typing import Any, Dict
 import pandas as pd
-from numpy import var
+import pandas
 
 
-def send_mail(variables, mail_content, receiver_address):
-    sender_address = variables['sender_address']
-    sender_pass = variables['sender_pass']
-    subject = variables['subject']
-    #The mail addresses and password
-    #Setup the MIME
-    message = MIMEMultipart()
-    message['From'] = sender_address
-    message['To'] = receiver_address
-    message['Subject'] = subject
-    #The subject line
-    #The body and the attachments for the mail
-    message.attach(MIMEText(mail_content, 'html'))
-    
-    with open('./Resume.pdf', "rb") as f:
-        #attach = email.mime.application.MIMEApplication(f.read(),_subtype="pdf")
-        attach = MIMEApplication(f.read(),_subtype="pdf")
-    attach.add_header('Content-Disposition','attachment',filename='Resume.pdf')
-    message.attach(attach)
-        
-    #Create SMTP session for sending the mail
-    session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
-    session.starttls() #enable security
-    session.login(sender_address, sender_pass) #login with mail_id and password
-    text = message.as_string()
-    session.sendmail(sender_address, receiver_address, text)
-    session.quit()
-    print(f'Mail Sent to {receiver_address}')
+class EmailSender:
+    def __init__(
+        self,
+        my_data_path: str,
+        profs_data_path: str,
+        resume_path: str,
+        content_path: str,
+    ):
+        self.my_data_path = my_data_path
+        self.profs_data_path = profs_data_path
+        self.resume_path = resume_path
+        self.content_path = content_path
+        self.cache: Dict[str, Any] = {}
+        self.load_my_data()
+        self.load_profs_data()
+        self.login_to_email()
+
+    def load_my_data(self) -> None:
+        with open(self.my_data_path, "r") as f:
+            self.my_data = json.load(f)
+        self.email: str = self.my_data["email"]
+
+    def load_profs_data(self) -> None:
+        with open(self.profs_data_path, "r") as f:
+            self.profs_data: pd.DataFrame = pd.read_excel("professors.xlsx")
+
+    def login_to_email(self) -> None:
+        email = self.my_data["email"]
+        password = self.my_data["password"]
+        session = smtplib.SMTP("smtp.gmail.com", 587)
+        session.ehlo()
+        session.starttls()
+        session.login(email, password)
+        self.session: smtplib.SMTP = session
+
+    def configure_email_message(self, prof_data) -> MIMEMultipart:
+        subject = self.my_data["subject"]
+        message = MIMEMultipart()
+        message["From"] = self.email
+        message["To"] = prof_data["email"]
+        message["Subject"] = subject
+        mail_content = self.get_mail_content(prof_data)
+        message.attach(MIMEText(mail_content, "html"))
+
+        with open(self.resume_path, "rb") as f:
+            attach = MIMEApplication(f.read(), _subtype="pdf")
+
+        attach.add_header("Content-Disposition", "attachment", filename="Resume.pdf")
+        message.attach(attach)
+        return message
+
+    def get_mail_content(self, prof_data) -> str:
+        with open(self.content_path, "r") as f:
+            raw_content = f.read()
+        mail_content = raw_content.format(
+            last_name=prof_data["last_name"],
+            university=prof_data["university"],
+            field=prof_data["field"],
+            my_field=self.my_data["field"],
+            my_university=self.my_data["university"],
+            my_country=self.my_data["country"],
+            gpa=self.my_data["gpa"],
+            toefl_score=self.my_data["toefl_score"],
+            gre_score=self.my_data["gre_score"],
+            paper=prof_data["paper"],
+            my_goal=self.my_data["my_goal"],
+            my_first_name=self.my_data["first_name"],
+        )
+        return mail_content
+
+    def send_email(self, prof_data: pandas.Series) -> None:
+        message = self.configure_email_message(prof_data)
+        text = message.as_string()
+        self.session.sendmail(self.email, prof_data["email"], text)
+
+    def send_email_to_all_profs(self) -> None:
+        for idx, prof_data in self.profs_data.iterrows():
+            self.send_email(prof_data=prof_data)
+            print(f"{idx+1} - Mail Sent to {prof_data['email']}")
+        self.session.quit()
 
 
-def content_maker(variables, prof_data):
-    my_firstname = variables['my_firstname']
-    my_university_name = variables['my_university_name']
-    my_field = variables['my_field']
-    paper_title = variables['paper_title']
-    nth_author = variables['nth_author']
-    gpa = variables['gpa']
-    toefl_score = variables['toefl_score']
-    gre_score = variables['gre_score']
-    my_goal = variables['my_goal']
-    my_country = variables['my_country']
+def main():
 
-    # Professor's Data
-    firstname = prof_data['firstname']
-    lastname = prof_data['lastname']
-    target_university_name = prof_data['target_university_name']
-    her_field = prof_data['her_field']
-    her_article = prof_data['her_article']
+    # Replace with real data files.
+    my_data_path = "./my_data_fake.json"
+    profs_data_path = "./professors.xlsx"
+    content_path = "./email_content.txt"
+    resume_path = "./Resume.pdf"
+    email_sender = EmailSender(
+        my_data_path=my_data_path,
+        profs_data_path=profs_data_path,
+        content_path=content_path,
+        resume_path=resume_path,
+    )
+    email_sender.send_email_to_all_profs()
 
 
-
-    mail_content = f'''Dear Prof. Dr. {firstname[0].upper()}. {lastname},<br><br>
-    
-    I turn to you for the <b>Master position</b> on {target_university_name} in the area of {her_field}. I hold a <b>BSc. in {my_field}</b> from the <b>best university of the country</b>, <b>{my_university_name}, {my_country}</b>. My journal paper <b>{paper_title}</b> as a <b>{nth_author}</b> was recently published as well. 
-    <br><br>
-    I have a <b>GPA</b> of <b>{gpa}</b>, and also I have already passed <b>TOEFL</b> with a total score of <b>{toefl_score}</b>, paired with a <b>{gre_score} in GRE</b>. 
-    <br><br>
-    I have reviewed your faculty profile and am interested in the work that you have done. I was intrigued by your journal article, <b>{her_article}</b>. I would like to get involved in research in this area because it will help me to better prepare for my feature as a <b>{my_goal}</b>.
-    <br><br>
-    Kindly find the attached <b>CV</b>, and would love to provide you with further documents if needed.  If the process will be manageable, I would look forward to being a part of your research.
-    <br><br>
-    I will wait for your kind response.<br>
-    Sincerely yours,<br>
-    {my_firstname}.
-    '''
-    return mail_content
-    
-
-
-
-with open('./variables.json', 'r') as f:
-    variables = json.load(f)
-
-
-profs = pd.read_excel('professors.xlsx')
-for row in range(len(profs)):
-    prof_data = profs.iloc[row,:].to_dict()
-    receiver_address = prof_data['receiver_address']
-    mail_content = content_maker(variables=variables, prof_data=prof_data)
-    send_mail(variables=variables, mail_content=mail_content, receiver_address=receiver_address)
+if __name__ == "__main__":
+    main()

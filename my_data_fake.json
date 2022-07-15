@@ -1,0 +1,14 @@
+{
+    "first_name" : "John",
+    "email" : "homayoonalimohammadi@gmail.com",
+    "password" : "password",
+    "subject" : "Test Email",
+    "university" : "University",
+    "field" : "Major",
+    "country" : "Country",
+    "nth_author" : "nth Author",
+    "gpa" : "GPA",
+    "toefl_score" : "TOEFL",
+    "gre_score" : "GRE",
+    "my_goal" : "My Goal"
+}
