@@ -1,2 +1,3 @@
 #!/bin/bash
-$(which python3) ./python/email_sender.py
+cd python
+$(which python3) email_sender.py
