@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/k3a/html2text"
 	"github.com/xuri/excelize/v2"
 	"gopkg.in/gomail.v2"
 )
+
+var waitGroup sync.WaitGroup
 
 type MyData struct {
 	Email      string `json:"email"`
@@ -79,11 +84,11 @@ func loadMyData(path string) (MyData, error) {
 	var myData MyData
 	f, err := ioutil.ReadFile(path)
 	if err != nil {
-		return MyData{}, nil
+		return MyData{}, err
 	}
 	err = json.Unmarshal(f, &myData)
 	if err != nil {
-		return MyData{}, nil
+		return MyData{}, err
 	}
 	return myData, nil
 }
@@ -95,7 +100,7 @@ func loadEmailContent(path string) (string, error) {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Fatalln("\033[0;31m error closing email_content.txt file:", err)
+			log.Fatalln("\033[0;31m error closing email_content.txt file: \033[0;37m", err)
 		}
 	}()
 
@@ -114,7 +119,7 @@ func loadAllProfsData(path string) ([]ProfessorData, error) {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Fatalln("\033[0;31m error closing professors.xlsx file:", err)
+			log.Fatalln("\033[0;31m error closing professors.xlsx file: \033[0;37m", err)
 		}
 	}()
 
@@ -141,16 +146,15 @@ func loadAllProfsData(path string) ([]ProfessorData, error) {
 	return allProfData, nil
 }
 
-func ExportEmailContent(text, fileName string) error {
+func exportEmailContent(text, fileName string) error {
 	path := "./exported/"
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		os.Mkdir("exported", os.ModePerm)
-	}
-	if err != nil {
+	} else if err != nil {
 		return err
 	}
-	file, err := os.Create(fileName)
+	file, err := os.Create(path + fileName)
 	if err != nil {
 		return err
 	}
@@ -160,7 +164,7 @@ func ExportEmailContent(text, fileName string) error {
 	if err != nil {
 		return err
 	}
-	log.Println("\033[0;32m successfullly exported to:", text)
+	log.Println("\033[0;32m successfullly exported to: \033[0;37m", fileName)
 	return nil
 }
 
@@ -190,13 +194,13 @@ func renderEmailContent(emailContentTemplate string, myData MyData, profData Pro
 	// Export emailContent
 	if export {
 		fileName := profData.University + "_" + string(profData.FirstName[0]) + "_" + profData.LastName
-		err := ExportEmailContent(emailContentText, fileName)
+		err := exportEmailContent(emailContentText, fileName)
 		if err != nil {
-			log.Println("\033[0;31m error exporting email content:", err)
+			log.Println("\033[0;31m error exporting email content: \033[0;37m", err)
 		}
 	}
 
-	return emailContentText
+	return emailContentHtml
 }
 
 func renderSubject(baseSubject string, profData ProfessorData) string {
@@ -206,23 +210,28 @@ func renderSubject(baseSubject string, profData ProfessorData) string {
 	return replacer.Replace(baseSubject)
 }
 
-func SendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailContentTemplate, attachmentPath string, myData MyData, allProfsData []ProfessorData, exportAllEmailContent, confirmSend bool) error {
+func sendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailContentTemplate, attachmentPath string, myData MyData, allProfsData []ProfessorData, exportAllEmailContent, confirmSend bool) error {
 	for _, profData := range allProfsData {
 		emailContent := renderEmailContent(emailContentTemplate, myData, profData, exportAllEmailContent)
 
 		if confirmSend {
 			subject := renderSubject(baseSubject, profData)
 			to := profData.Email
-			err := emailSender.CreateAndSendEmailMessage(
-				to,
-				subject,
-				emailContent,
-				attachmentPath,
-			)
-			if err != nil {
-				return err
-			}
-			log.Println("\033[0;32m successfully sent email to:", to)
+			waitGroup.Add(1)
+			go func(to, subject, emailContent, attachmentPath string) {
+				err := emailSender.CreateAndSendEmailMessage(
+					to,
+					subject,
+					emailContent,
+					attachmentPath,
+				)
+				if err != nil {
+					log.Fatalln("\033[0;31m error sending email to all professors: \033[0;37m", err)
+				}
+				waitGroup.Done()
+
+			}(to, subject, emailContent, attachmentPath)
+			log.Println("\033[0;32m successfully sent email to: \033[0;37m", to)
 		}
 	}
 	return nil
@@ -230,9 +239,11 @@ func SendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailConten
 
 func main() {
 
+	t0 := time.Now()
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalln("\033[0;31m error loading .env file:", err)
+		log.Fatalln("\033[0;31m error loading .env file: \033[0;37m", err)
 
 	}
 
@@ -240,32 +251,34 @@ func main() {
 	emailContentTemplatePath := os.Getenv("EMAIL_CONTENT_PATH")
 	allProfsDataPath := os.Getenv("ALL_PROFS_DATA_PATH")
 	attachmentPath := os.Getenv("EMAIL_ATTACHMENT_PATH")
-	exportAllEmailContent := os.Getenv("EXPORT_ALL_EMAIL_CONTENT") == "1"
+	exportAllEmailContent := os.Getenv("EXPORT_CONTENT") == "1"
 	confirmSend := os.Getenv("SEND_EMAIL") == "1"
 	baseSubject := "Prospective student interested in {interest} with Machine Learning background"
 
 	// Load myData
 	myData, err := loadMyData(myDataPath)
 	if err != nil {
-		log.Fatalln("\033[0;31m error loading my_data.json:", err)
+		log.Fatalln("\033[0;31m error loading my_data.json: \033[0;37m", err)
 	}
 
 	// Load emailContent
 	emailContentTemplate, err := loadEmailContent(emailContentTemplatePath)
 	if err != nil {
-		log.Fatalln("\033[0;31m error loading email_content.txt:", err)
+		log.Fatalln("\033[0;31m error loading email_content.txt: \033[0;37m", err)
 	}
 
 	// Load allProfsData
 	allProfsData, err := loadAllProfsData(allProfsDataPath)
 	if err != nil {
-		log.Fatalln("\033[0;31m error loading professors.xlsx:", err)
+		log.Fatalln("\033[0;31m error loading professors.xlsx: \033[0;37m", err)
 	}
+
+	log.Println("\033[0;32m successfully loaded all the necessary data \033[0;37m")
 
 	// Initialize EmailSender
 	emailSender := NewEmailSender(myData.Email, myData.Password)
-
-	err = SendEmailToAllProfessors(
+	log.Println("\033[0;32m successfully initialized EmailSender \033[0;37m")
+	err = sendEmailToAllProfessors(
 		emailSender,
 		baseSubject,
 		emailContentTemplate,
@@ -276,7 +289,10 @@ func main() {
 		confirmSend,
 	)
 	if err != nil {
-		log.Fatalln("\033[0;31m error sending email to all professors:", err)
+		log.Fatalln("\033[0;31m error sending email to all professors: \033[0;37m", err)
 	}
-	log.Println("\033[0;32m successfully sent email to all professors!")
+	waitGroup.Wait()
+	log.Println("\033[0;32m successfully sent email to all professors! \033[0;37m")
+	t1 := time.Now()
+	log.Println("\033[0;36m Elapsed time: \033[0;37m", math.Round(t1.Sub(t0).Seconds()*100)/100)
 }
