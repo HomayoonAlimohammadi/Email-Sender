@@ -44,7 +44,8 @@ class EmailSender:
         self.session: smtplib.SMTP = session
 
     def configure_email_message(self, prof_data) -> MIMEMultipart:
-        subject = self.my_data["subject"]
+        interest = prof_data["interest"]
+        subject = f"Prospective student interested in {interest} with Machine Learning background new 2!"
         message = MIMEMultipart()
         message["From"] = self.email
         message["To"] = prof_data["email"]
@@ -63,18 +64,14 @@ class EmailSender:
         with open(self.content_path, "r") as f:
             raw_content = f.read()
         mail_content = raw_content.format(
-            last_name=prof_data["last_name"],
-            university=prof_data["university"],
-            field=prof_data["field"],
-            my_field=self.my_data["field"],
-            my_university=self.my_data["university"],
-            my_country=self.my_data["country"],
-            gpa=self.my_data["gpa"],
-            toefl_score=self.my_data["toefl_score"],
-            gre_score=self.my_data["gre_score"],
-            paper=prof_data["paper"],
-            my_goal=self.my_data["my_goal"],
-            my_first_name=self.my_data["first_name"],
+            prof_last_name=prof_data["last_name"],
+            prof_interest=prof_data["interest"],
+            prof_first_paper=prof_data["first_paper"],
+            prof_first_paper_year=prof_data["first_paper_year"],
+            prof_second_paper=prof_data["second_paper"],
+            prof_second_paper_year=prof_data["second_paper_year"],
+            target_degree=self.my_data["target_degree"],
+            prof_university=prof_data["university"],
         )
         return mail_content
 
@@ -86,14 +83,14 @@ class EmailSender:
     def send_email_to_all_profs(self) -> None:
         for idx, prof_data in self.profs_data.iterrows():
             self.send_email(prof_data=prof_data)
-            print(f"{idx+1} - Mail Sent to {prof_data['email']}")
+            print(f"{idx+1} - Mail Sent to {prof_data['email']}") # type: ignore
         self.session.quit()
 
 
 def main():
 
     # Replace with real data files.
-    my_data_path = "./my_data_fake.json"
+    my_data_path = "./my_data.json"
     profs_data_path = "./professors.xlsx"
     content_path = "./email_content.txt"
     resume_path = "./Resume.pdf"

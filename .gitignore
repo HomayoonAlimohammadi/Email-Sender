@@ -1,2 +1,4 @@
 *.ipynb
 my_data.json
+professors.xlsx
+env/
