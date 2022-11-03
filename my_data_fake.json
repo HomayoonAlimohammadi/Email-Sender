@@ -1,5 +1,13 @@
 {
-    "email" : "nooshin.rajabi1999@gmail.com",
-    "target_degree": "M.Sc.",
-    "password" : "ypqqdyeqqovmgkxl"
-} 
+    "email": "homayoonalimohammadi@gmail.com",
+    "password": "1234",
+    "first_name": "Homayoon",
+    "last_name": "Alimohammadi",
+    "city": "Tehran",
+    "country": "Iran",
+    "major": "Computer Engineering",
+    "university": "Sharif University of Technology",
+    "gpa": 4,
+    "toefl": 120,
+    "website": "homayoonalimohammadi.github.io"
+}

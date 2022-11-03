@@ -1,0 +1,6 @@
+class SendEmailException(Exception):
+    ...
+
+
+class EmailSenderInitializationException(Exception):
+    ...
