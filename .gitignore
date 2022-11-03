@@ -4,4 +4,4 @@ professors.xlsx
 env/
 *.env
 __pycache__
-exported/
+*exported/
