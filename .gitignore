@@ -3,3 +3,4 @@ my_data.json
 professors.xlsx
 env/
 *.env
+__pycache__
