@@ -16,6 +16,11 @@ This project got your back! Just prepare your and professors data, write down yo
 # Tutorial
 
 - <span style="color:yellow">WARNING</span>: All the commands starting with `make` should be executed where the `Makefile` is available
+- In order to use the `python version`, you need to install `python >= 3.10`. [Installation instructions](https://www.python.org/downloads/)
+- In order to use the `go version`, you need to install `golang >= 1.17`. [Installation instructions](https://go.dev/doc/install)
+- In order to use the command `make` for the `Makefile`, you need to have `make` installed:
+  - [Windows](https://stackoverflow.com/questions/2532234/how-to-run-a-makefile-in-windows)
+  - [Linux](https://linuxhint.com/install-make-ubuntu/)
 
 ## Create Mandatory Files:
 
