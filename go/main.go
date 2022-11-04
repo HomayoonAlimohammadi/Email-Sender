@@ -18,6 +18,8 @@ import (
 
 var waitGroup sync.WaitGroup
 
+// MyData struct that contains the main configuration
+// from my_data.json
 type MyData struct {
 	Email      string `json:"email"`
 	Password   string `json:"password"`
@@ -32,6 +34,7 @@ type MyData struct {
 	Website    string `json:"website"`
 }
 
+// ProfessorData struct that will contain each professor's data
 type ProfessorData struct {
 	FirstName       string `json:"first_name"`
 	LastName        string `json:"last_name"`
@@ -45,6 +48,8 @@ type ProfessorData struct {
 	Email           string `json:"email"`
 }
 
+// EmailSender struct which will be initialized and used
+// to send emails
 type EmailSender struct {
 	Email    string         `json:"email"`
 	Password string         `json:"password"`
@@ -54,19 +59,9 @@ type EmailSender struct {
 	Dialer   *gomail.Dialer `json:"auth"`
 }
 
-func (es *EmailSender) CreateAndSendEmailMessage(to, subject, emailContent, attachmentPath string) error {
-	msg := gomail.NewMessage()
-	msg.SetHeader("From", es.Email)
-	msg.SetHeader("To", to)
-	msg.SetHeader("Subject", subject)
-	msg.SetBody("text/html", emailContent)
-	msg.Attach(attachmentPath)
-	if err := es.Dialer.DialAndSend(msg); err != nil {
-		return err
-	}
-	return nil
-}
-
+// Given the "email" and "passowrd", will return a pointer to an
+// EmailSender object.
+// Use this to instanciate and initialize EmailSender objects.
 func NewEmailSender(email, password string) *EmailSender {
 	host := "smtp.gmail.com"
 	port := 587
@@ -80,6 +75,21 @@ func NewEmailSender(email, password string) *EmailSender {
 	}
 }
 
+// Given sufficient information for a valid email, creates a Message and sends it.
+func (es *EmailSender) CreateAndSendEmailMessage(to, subject, emailContent, attachmentPath string) error {
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", es.Email)
+	msg.SetHeader("To", to)
+	msg.SetHeader("Subject", subject)
+	msg.SetBody("text/html", emailContent)
+	msg.Attach(attachmentPath)
+	if err := es.Dialer.DialAndSend(msg); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Given the path to my_data.json, loads it and returns an instance of MyData.
 func loadMyData(path string) (MyData, error) {
 	var myData MyData
 	f, err := ioutil.ReadFile(path)
@@ -93,6 +103,7 @@ func loadMyData(path string) (MyData, error) {
 	return myData, nil
 }
 
+// Given the path to email_content.txt, loads it and returns a string.
 func loadEmailContent(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -112,6 +123,7 @@ func loadEmailContent(path string) (string, error) {
 	return string(content), nil
 }
 
+// Given the path to professors.xlsx, loads it and returns a slice of ProfessorData(s).
 func loadAllProfsData(path string) ([]ProfessorData, error) {
 	file, err := excelize.OpenFile(path)
 	if err != nil {
@@ -146,6 +158,7 @@ func loadAllProfsData(path string) ([]ProfessorData, error) {
 	return allProfData, nil
 }
 
+// Given an email content string and a fileName, exports the text to the file.
 func exportEmailContent(text, fileName string) error {
 	path := "./exported/"
 	_, err := os.Stat(path)
@@ -168,6 +181,8 @@ func exportEmailContent(text, fileName string) error {
 	return nil
 }
 
+// Given the email content template and sufficient data, renders the template and returns the final string.
+// An export parameter will be used to indicate whether or not the final text will be exported.
 func renderEmailContent(emailContentTemplate string, myData MyData, profData ProfessorData, export bool) string {
 	replacer := strings.NewReplacer(
 		"{prof_last_name}", profData.LastName,
@@ -203,6 +218,7 @@ func renderEmailContent(emailContentTemplate string, myData MyData, profData Pro
 	return emailContentHtml
 }
 
+// Given the base email subject and sufficient data, returns the final subject string.
 func renderSubject(baseSubject string, profData ProfessorData) string {
 	replacer := strings.NewReplacer(
 		"{interest}", profData.Interest,
@@ -210,6 +226,10 @@ func renderSubject(baseSubject string, profData ProfessorData) string {
 	return replacer.Replace(baseSubject)
 }
 
+// Given a pointer to an instance of EmailSender, with subject and email content templates and sufficient data,
+// renders the final subject and email content, then sends appropriate email to each professor.
+// export and confirmSend parameters are used to indicate whether the final text will be exported into a .txt file
+// and whether the prepared email is actually sent (set the confirmSend to false for development and test purposes).
 func sendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailContentTemplate, attachmentPath string, myData MyData, allProfsData []ProfessorData, exportAllEmailContent, confirmSend bool) error {
 	for _, profData := range allProfsData {
 		emailContent := renderEmailContent(emailContentTemplate, myData, profData, exportAllEmailContent)
