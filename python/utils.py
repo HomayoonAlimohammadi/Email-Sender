@@ -63,15 +63,16 @@ def export_email_content(email_content: str, file_name: str) -> None:
         - `file_name`: the name of file
     - Path will be generated if not exists
     """
-    current_dir = os.path.join(os.getcwd(), "python")
+    current_dir = os.getcwd()
     if not os.path.exists(os.path.join(current_dir, "exported")):
         os.mkdir(os.path.join(current_dir, "exported"))
-    path = os.path.join(os.getcwd(), "python", "exported", file_name)
+    path = os.path.join(os.getcwd(), "exported", file_name)
     try:
         with open(path, "w") as f:
             f.write(html2text(email_content))
+            print("\033[0;32m exported email content in: \033[0;37m", file_name)
     except Exception as e:
-        print(f"\033[1;33m WARNING: unable to export email content: {path}")
+        print(f"\033[1;33m WARNING: unable to export email content: \033[0;37m {path}")
 
 
 def get_email_attachment(path: str, file_name: str = "") -> MIMEApplication:
@@ -97,7 +98,7 @@ def get_email_attachment(path: str, file_name: str = "") -> MIMEApplication:
         attachment.add_header("Content-Disposition", "attachment", filename=file_name)
     except Exception as e:
         print(
-            "\033[0;31m error opening email attachment. Check EMAIL_ATTACHMENT_PATH in your .env file"
+            "\033[0;31m error opening email attachment. Check EMAIL_ATTACHMENT_PATH in your .env file \033[0;37m"
         )
         sys.exit(1)
     return attachment
@@ -109,7 +110,7 @@ def load_my_data(path: str) -> Any:
             my_data = json.load(f)
     except Exception as e:
         print(
-            "\033[0;31m error opening my_data json file. Check MY_DATA_PATH in your .env file"
+            "\033[0;31m error opening my_data json file. Check MY_DATA_PATH in your .env file \033[0;37m"
         )
         sys.exit(1)
     return my_data
@@ -120,7 +121,7 @@ def load_all_profs_data(path: str) -> pandas.DataFrame:
         all_profs_data = pd.read_excel(path)
     except Exception as e:
         print(
-            "\033[0;31m error opening all professors data. Check ALL_PROFS_DATA_PATH in your .env file"
+            "\033[0;31m error opening all professors data. Check ALL_PROFS_DATA_PATH in your .env file \033[0;37m"
         )
         sys.exit(1)
     return all_profs_data

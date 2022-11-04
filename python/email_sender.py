@@ -36,7 +36,7 @@ class EmailSender:
             self.setup_smpt_session()
         except Exception as e:
             self.quit_session()
-            print("error setting up the smtp session")
+            print("\033[1;32m error setting up the smtp session \033[0;37m")
             raise EmailSenderInitializationException
 
     def quit_session(self) -> None:
@@ -47,7 +47,7 @@ class EmailSender:
             self.session.quit()
         except Exception as _:
             ...
-        print("\033[1;33m INFO: successfully quit SMTP session.")
+        print("\033[1;33m INFO: successfully quit SMTP session. \033[0;37m")
 
     def setup_smpt_session(self) -> None:
         """
@@ -81,7 +81,7 @@ class EmailSender:
         if attachment:
             message.attach(attachment)
         self.session.sendmail(self.email, to, message.as_string())
-        print(f"\033[0;32m Sent mail to {to}")
+        print(f"\033[0;32m Sent mail to {to} \033[0;37m")
 
 
 def send_email_to_all_profs(
@@ -134,14 +134,16 @@ def send_email_to_all_profs(
 
 def main():
 
+    print("\033[0;36m Made with <3 by Homayoon Alimohammadi \033[0;37m")
+
     # Start the Timer
     t0 = time()
 
     load_dotenv()
-    MY_DATA_PATH = os.environ.get("MY_DATA_PATH", "")
-    EMAIL_CONTENT_PATH = os.environ.get("EMAIL_CONTENT_PATH", "")
-    ALL_PROFS_DATA_PATH = os.environ.get("ALL_PROFS_DATA_PATH", "")
-    EMAIL_ATTACHMENT_PATH = os.environ.get("EMAIL_ATTACHMENT_PATH", "")
+    MY_DATA_PATH = "../my_data.json"
+    EMAIL_CONTENT_PATH = "../email_content.txt"
+    ALL_PROFS_DATA_PATH = "../professors.xlsx"
+    EMAIL_ATTACHMENT_PATH = "../Resume.pdf"
     SEND_EMAIL = os.environ.get("SEND_EMAIL", "1") == "1"
     EXPORT_CONTENT = os.environ.get("EXPORT_CONTENT", "1") == "1"
     BASE_EMAIL_SUBJECT = (
@@ -159,10 +161,10 @@ def main():
         password = my_data.get("password", "")
         email_sender = EmailSender(email, password)
         print(
-            "\033[1;32m Successfully opened all data files and initialized SMTP session!"
+            "\033[1;32m Successfully opened all data files and initialized SMTP session! \033[0;37m"
         )
     except EmailSenderInitializationException as e:
-        print("\033[0;31m error initializing the gmail smtp session")
+        print("\033[0;31m error initializing the gmail smtp session \033[0;37m")
         sys.exit(1)
 
     try:
@@ -177,13 +179,13 @@ def main():
             confirm_send=SEND_EMAIL,
         )
     except SendEmailException as e:
-        print("\033[0;31m error sending email to professors\n", e)
+        print("\033[0;31m error sending email to professors: \033[0;37m", e)
     finally:
         email_sender.quit_session()
 
     # Print sending results:
     t1 = time()
-    print(f"\033[0;36m Elapsed time: {round(t1 - t0, 2)} seconds.")
+    print(f"\033[0;36m Elapsed time: {round(t1 - t0, 2)} seconds. \033[0;37m")
 
 
 if __name__ == "__main__":

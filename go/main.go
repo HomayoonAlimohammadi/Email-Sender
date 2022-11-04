@@ -239,18 +239,20 @@ func sendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailConten
 
 func main() {
 
+	log.Println("\033[0;36m Made with <3 by Homayoon Alimohammadi \033[0;37m")
+
 	t0 := time.Now()
 
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatalln("\033[0;31m error loading .env file: \033[0;37m", err)
 
 	}
 
-	myDataPath := os.Getenv("MY_DATA_PATH")
-	emailContentTemplatePath := os.Getenv("EMAIL_CONTENT_PATH")
-	allProfsDataPath := os.Getenv("ALL_PROFS_DATA_PATH")
-	attachmentPath := os.Getenv("EMAIL_ATTACHMENT_PATH")
+	myDataPath := "../my_data.json"
+	emailContentTemplatePath := "../email_content.txt"
+	allProfsDataPath := "../professors.xlsx"
+	attachmentPath := "../Resume.pdf"
 	exportAllEmailContent := os.Getenv("EXPORT_CONTENT") == "1"
 	confirmSend := os.Getenv("SEND_EMAIL") == "1"
 	baseSubject := "Prospective student interested in {interest} with Machine Learning background"
