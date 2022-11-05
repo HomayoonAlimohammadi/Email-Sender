@@ -1,5 +1,8 @@
 .PHONY: py pydeps go godeps gobuild help check_files
 
+BINARY_OUTPUT := EmailSender
+EXE_OUTPUT := EmailSender.exe
+
 py: pydeps
 	cd python && \
 	python3 email_sender.py
@@ -14,11 +17,11 @@ go: godeps
 
 gobuild: godeps
 	cd go && \
-	go build -o EmailSender main.go
+	go build -o ${BINARY_OUTPUT} main.go
 
 gobuild_win: godeps
 	cd go && \
-	go build -o EmailSender.exe main.go
+	env GOOS=windows GOARCH=amd64 go build -o ${EXE_OUTPUT} main.go
 
 godeps:
 	cd go && \
@@ -32,5 +35,5 @@ help:
 
 clean:
 	find . -wholename '*/exported/*' -delete 
-	find . -name '*EmailSender' -delete
-	find . -name '*EmailSender.exe' -delete
+	find . -name '*${BINARY_OUTPUT}' -delete
+	find . -name '*${EXE_OUTPUT}' -delete

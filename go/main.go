@@ -18,6 +18,10 @@ import (
 
 var waitGroup sync.WaitGroup
 
+type Sender interface {
+	Send(*gomail.Message) error
+}
+
 // MyData struct that contains the main configuration
 // from my_data.json
 type MyData struct {
@@ -75,18 +79,23 @@ func NewEmailSender(email, password string) *EmailSender {
 	}
 }
 
-// Given sufficient information for a valid email, creates a Message and sends it.
-func (es *EmailSender) CreateAndSendEmailMessage(to, subject, emailContent, attachmentPath string) error {
-	msg := gomail.NewMessage()
-	msg.SetHeader("From", es.Email)
-	msg.SetHeader("To", to)
-	msg.SetHeader("Subject", subject)
-	msg.SetBody("text/html", emailContent)
-	msg.Attach(attachmentPath)
+// Given an instance of message, sends the email with that message
+func (es *EmailSender) Send(msg *gomail.Message) error {
 	if err := es.Dialer.DialAndSend(msg); err != nil {
 		return err
 	}
 	return nil
+}
+
+// Given sufficient information, creates a message
+func CreateMessage(from, to, subject, emailContent, attachmentPath string) *gomail.Message {
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", from)
+	msg.SetHeader("To", to)
+	msg.SetHeader("Subject", subject)
+	msg.SetBody("text/html", emailContent)
+	msg.Attach(attachmentPath)
+	return msg
 }
 
 // Given the path to my_data.json, loads it and returns an instance of MyData.
@@ -230,27 +239,33 @@ func renderSubject(baseSubject string, profData ProfessorData) string {
 // renders the final subject and email content, then sends appropriate email to each professor.
 // export and confirmSend parameters are used to indicate whether the final text will be exported into a .txt file
 // and whether the prepared email is actually sent (set the confirmSend to false for development and test purposes).
-func sendEmailToAllProfessors(emailSender *EmailSender, baseSubject, emailContentTemplate, attachmentPath string, myData MyData, allProfsData []ProfessorData, exportAllEmailContent, confirmSend bool) error {
+func sendEmailToAll(emailSender Sender, baseSubject, emailContentTemplate, attachmentPath string, myData MyData, allProfsData []ProfessorData, exportAllEmailContent, confirmSend bool) error {
 	for _, profData := range allProfsData {
 		emailContent := renderEmailContent(emailContentTemplate, myData, profData, exportAllEmailContent)
 
 		if confirmSend {
+			waitGroup.Add(1)
+
 			subject := renderSubject(baseSubject, profData)
 			to := profData.Email
-			waitGroup.Add(1)
+			from := myData.Email
+
 			go func(to, subject, emailContent, attachmentPath string) {
-				err := emailSender.CreateAndSendEmailMessage(
+				msg := CreateMessage(
+					from,
 					to,
 					subject,
 					emailContent,
 					attachmentPath,
 				)
+				err := emailSender.Send(msg)
 				if err != nil {
 					log.Fatalln("\033[0;31m error sending email to all professors: \033[0;37m", err)
 				}
 				waitGroup.Done()
 
 			}(to, subject, emailContent, attachmentPath)
+
 			log.Println("\033[0;32m successfully sent email to: \033[0;37m", to)
 		}
 	}
@@ -300,7 +315,7 @@ func main() {
 	// Initialize EmailSender
 	emailSender := NewEmailSender(myData.Email, myData.Password)
 	log.Println("\033[0;32m successfully initialized EmailSender \033[0;37m")
-	err = sendEmailToAllProfessors(
+	err = sendEmailToAll(
 		emailSender,
 		baseSubject,
 		emailContentTemplate,
