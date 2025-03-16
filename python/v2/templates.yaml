@@ -1,0 +1,67 @@
+subject: Prospective PhD Applicant Interested in {research_area} - Homayoon Alimohammadi
+content_raw: |
+  Dear Professor {last_name},
+
+  I hope this email finds you well. My name is Homayoon Alimohammadi, and I am writing to express my interest in pursuing a PhD under your guidance in {research_area}.
+
+  I recently began my master's degree in Artificial Intelligence and scored as a top student in courses like machine learning, pattern recognition, and evolutionary process. 
+  For the past three years, I've also worked as a software engineer at leading international companies, honing my expertise in software engineering, cloud computing, and AI.
+
+  I have also published three journal papers [1] during my academic journey, which makes me believe I'll be able to conduct innovative research. 
+  Additionally, I document technical challenges and solutions in my blog [2], reflecting my commitment to learning and knowledge-sharing. 
+  With my combined research background and industry experience, I am eager to contribute meaningfully to your projects.
+
+  I would be grateful for the opportunity to discuss any available PhD positions in your group. Please find my resume and research statement attached, I'll be more than happy to share any further details.
+
+  Thank you for considering my application. Looking forward to hearing from you.
+
+  Sincerely,
+  Homayoon Alimohammadi
+  Google scholar: https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en
+  Website: https://homayoon.blog
+  LinkedIn: https://www.linkedin.com/in/homayoon-alimohammadi
+
+  References
+  [1] Google scholar - https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en 
+  [2] Technical blog - https://homayoon.blog/blogs/
+content_html: |
+  <html><body>
+  <p>Dear Professor {last_name},</p>
+
+  <p>
+  I hope this email finds you well. My name is Homayoon Alimohammadi, and I am writing to express my interest in pursuing a PhD under your guidance in {research_area}.
+  </p>
+
+  <p>
+  I recently began my master's degree in <b>Artificial Intelligence</b> and scored as a top student in courses like <b>machine learning, pattern recognition</b>, and <b>evolutionary process</b>.<br>
+  For the past three years, I've also worked as a <b>software engineer</b> at leading international companies, honing my expertise in software engineering, cloud computing, and AI.
+  </p>
+
+  <p>
+  I have also published <b>three journal papers</b> <a href="https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en ">[1]</a> during my academic journey, which makes me believe I'll be able to conduct innovative research.<br>
+  Additionally, I document technical challenges and solutions in my blog <a href="https://homayoon.blog/blogs/">[2]</a>, reflecting my commitment to learning and knowledge-sharing.<br>
+  With my combined research background and industry experience, I am eager to contribute meaningfully to your projects.
+  </p>
+
+  <p>
+  I would be grateful for the opportunity to discuss any available PhD positions in your group. Please find my <b>resume</b> and <b>research statement</b> attached, I'll be more than happy to share any further details.
+  </p>
+
+  <p>
+  Thank you for considering my application. Looking forward to hearing from you.
+  </p>
+
+  </p>
+  Sincerely,<br>
+  Homayoon Alimohammadi<br>
+  Google scholar: <a href="https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en">https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en</a><br>
+  Website: <a href="https://homayoon.blog">https://homayoon.blog</a><br>
+  LinkedIn: <a href="https://www.linkedin.com/in/homayoon-alimohammadi">https://www.linkedin.com/in/homayoon-alimohammadi</a>
+  </p>
+
+  <p>
+  <b>References</b><br>
+  [1] Google scholar - <a href="https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en">https://scholar.google.com/citations?user=9S8f0gsAAAAJ&hl=en</a><br>
+  [2] Technical blog - <a href="https://homayoon.blog/blogs/">https://homayoon.blog/blogs/</a>
+  </p>
+  </body></html>

@@ -7,3 +7,4 @@ __pycache__
 *exported/
 EmailSender
 EmailSender.exe
+*.pdf
