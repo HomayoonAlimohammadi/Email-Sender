@@ -38,6 +38,26 @@ def attach_file(msg: MIMEMultipart, filepath: str) -> None:
     part['Content-Disposition'] = f'attachment; filename="{os.path.basename(filepath)}"'
     msg.attach(part)
 
+def show_email(msg: MIMEMultipart) -> None:
+    """Display the email message."""
+    print()
+    print("Subject:", msg["Subject"])
+    print("From:", msg["From"])
+    print("To:", msg["To"])
+    print("Content:")
+    print(msg.as_string())
+    print()
+
+class RefusedToSendEmail(Exception):
+    pass
+
+def get_verification() -> None:
+    """Ask for verification before sending the email."""
+    ans = input("Send email? (y/n):")
+    if ans.lower() != "y":
+        raise RefusedToSendEmail("Aborted by user.")
+    print("Sending email...")
+
 def main():
     # Load the template and the list of recipient emails
     template = load_template(TEMPLATE_FILE)
@@ -79,6 +99,12 @@ def main():
         
         # Send email
         try:
+            show_email(msg)
+            try:
+                get_verification()
+            except RefusedToSendEmail as e:
+                print(f"Failed to send email to {prof_email}: {e}")
+                continue
             server.sendmail(SMTP_USER, prof_email, msg.as_string())
             print(f"Email sent to {prof_email}")
         except Exception as e:
