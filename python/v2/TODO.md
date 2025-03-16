@@ -4,3 +4,5 @@
   - Don't send if already_sent is True, or ask to send anyway
   - Update the "already_sent" field when the email is sent
 - Convert excel or csv to profs json
+- Add university field to profs
+  - Only pick a subset of profs from each university and ignore others (or something like that)
