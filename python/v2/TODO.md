@@ -1,0 +1,6 @@
+- Email in different coroutines?
+- Ask to show content or show part of content only
+- Add "already_sent" field
+  - Don't send if already_sent is True, or ask to send anyway
+  - Update the "already_sent" field when the email is sent
+- Convert excel or csv to profs json
